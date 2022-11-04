@@ -6,14 +6,17 @@ import numpy as np
 
 
 class Individual:
-    """This class represents a 8x8 board in the eight queens puzzle"""
+    """This class represents an individual and contains his genome"""
 
-    def __init__(self, state=None):
-        """
-        :param state: pass in a numpy array of integers to set the state, otherwise will be generated randomly
-        """
-        self.state = state if state is not None else np.random.randint(0, high=8, size=8)
-        self.n = 8
+    def __init__(self, state=None, board_size=8):
+        if state is None:
+            self.n = board_size
+            self.state = np.random.randint(0, high=board_size, size=board_size)
+        else:
+            if len(state) != board_size:
+                raise Exception('Board size and states are not matching.')
+            self.n = board_size
+            self.state = state
         self.fitness = None
 
     def cost(self) -> int:
@@ -44,12 +47,14 @@ class Individual:
 class Population:
     """This class represents a population of individual states"""
 
-    def __init__(self, k: int, cf: staticmethod, states=None):
-        self.k = k
-        self.cf = cf
-        self.population_size = self.cf(k)
-        if states is None: self.population = [Individual() for _ in range(self.population_size)]  # initial state
-        else: self.population = [Individual(state=states[s]) for s in range(self.population_size)]  # not initial state
+    def __init__(self, top_individuals: int, board_size: int, crossover: staticmethod, states=None):
+        self.k = top_individuals
+        self.n = board_size
+        self.cf = crossover
+        self.population_size = crossover(top_individuals)
+
+        if states is None: self.population = [Individual(board_size=board_size) for _ in range(self.population_size)]  # initial state
+        else: self.population = [Individual(state=states[s], board_size=board_size) for s in range(self.population_size)]  # not initial state
 
     def fitness(self) -> np.ndarray: return np.array([i.cost() for i in self.population])
 
@@ -65,14 +70,25 @@ class Population:
 
 
 class EightQueensRunner:
-    def __init__(self, top_individuals: int, crossover: str, mutation_rate=1 / 8, max_iter=5000, verbose=False):
+    """This is a controller class for the eight queens problem"""
+
+    def __init__(self, top_individuals: int, crossover: str, mutation_rate: float, board_size: int, max_iter=5000, verbose=False):
+        """
+        :param top_individuals: the amount of top individuals
+        :param crossover: the way in which genes from the best individual crossover
+        :param mutation_rate: rate at which the genes mutate
+        :param board_size: determines the size of board
+        :param max_iter: upper limit for the number of iterations
+        :param verbose: verbosity level
+        """
         self.k = top_individuals
         self.c = crossover
         self.m = mutation_rate
-        self.n = 8
+        self.n = board_size
         self.max_iter = max_iter
         self.verbose = verbose
 
+        if board_size < 4: raise Exception('No solution for board size smaller than 4.')
         if crossover == 'permutations' and top_individuals < 3: raise Exception("Permutations crossover require top_individuals > 2.")
         self.selection_split = math.ceil(self.n / 2 - 1)
         self.cf = {
@@ -113,11 +129,11 @@ class EightQueensRunner:
         next_generation = None
         while generation < self.max_iter:
             # create new generation
-            population = Population(k=self.k, cf=self.cf, states=next_generation)
+            population = Population(top_individuals=self.k, board_size=self.n, crossover=self.cf, states=next_generation)
 
             # check for the success
             if population.has_the_goal():
-                print(f"Goal state achieved in {generation} iterations. {population.the_goal()}")
+                # print(f"Goal state achieved in {generation} iterations. {population.the_goal()}")
                 break
 
             # get best individuals
@@ -145,11 +161,15 @@ class EightQueensRunner:
             if self.verbose: print(f"Next generation:", *(str(gene).rjust(23) for gene in next_generation), sep='\n', end='\n\n')
             generation += 1
         else:
-            print('The algorithm failed to reach the goal.')
+            # print('The algorithm failed to reach the goal.')
+            pass
 
 
 if __name__ == '__main__':
-    with Timer():
-        EightQueensRunner(top_individuals=3,
-                          crossover='product',
+    with Timer() as t:
+        EightQueensRunner(top_individuals=5,
+                          crossover='permutations',
+                          mutation_rate=1 / 8,
+                          board_size=8,
                           verbose=True).run()
+    print(t.getAbsoluteInterval())
