@@ -13,8 +13,8 @@ cf = {
 }
 
 
-def process(x: tuple) -> dict:
-    N, K, M, C = x
+def process(params: tuple) -> dict:
+    N, K, M, C = params
     size = cf[C](K) * N  # crossover(top_individuals) * board_size
     times = []
     for _ in range(100):
@@ -23,7 +23,7 @@ def process(x: tuple) -> dict:
                               crossover=C,
                               mutation_rate=M,
                               board_size=N,
-                              verbose=False).run()
+                              max_iter=2500).run()
         times.append(t.getAbsoluteInterval())
     avg_time = sum(times) / len(times)
     return {'size': size,
@@ -35,16 +35,44 @@ def process(x: tuple) -> dict:
 
 
 if __name__ == '__main__':
-    n_range = range(4, 16)
-    k_range = range(3, 13)
-    m_range = np.linspace(0.125, 0.5, 13)
-    c_range = ['product', 'permutations', 'combinations_with_rep']
+    n_range = range(9, 11)
+    k_range = range(3, 9)
+    m_range = np.linspace(0.05, 0.12, 11)
+    c_range = ['product', 'permutations']
     data = []
 
-    with Pool(8) as pool:
+    with Pool(6) as pool:
         for result in pool.imap_unordered(process, itertools.product(n_range, k_range, m_range, c_range), chunksize=3):
             print(result)
             data.append(result)
 
     data = pd.DataFrame(data)
-    data.to_csv('grid_search.csv', index=False)
+    data.to_csv('gs_FullSearch_N9-10V2.csv', index=False)
+
+    n_range = [11]
+    k_range = range(3, 9)
+    m_range = np.linspace(0.05, 0.15, 11)
+    c_range = ['product', 'permutations']
+    data = []
+
+    with Pool(6) as pool:
+        for result in pool.imap_unordered(process, itertools.product(n_range, k_range, m_range, c_range), chunksize=3):
+            print(result)
+            data.append(result)
+
+    data = pd.DataFrame(data)
+    data.to_csv('gs_FullSearch_N11.csv', index=False)
+
+    # n_range = [12]
+    # k_range = range(3, 9)
+    # m_range = np.linspace(0.05, 0.15, 11)
+    # c_range = ['product', 'permutations']
+    # data = []
+    #
+    # with Pool(6) as pool:
+    #     for result in pool.imap_unordered(process, itertools.product(n_range, k_range, m_range, c_range), chunksize=3):
+    #         print(result)
+    #         data.append(result)
+    #
+    # data = pd.DataFrame(data)
+    # data.to_csv('gs_FullSearch_N12.csv', index=False)

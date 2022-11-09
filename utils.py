@@ -12,7 +12,7 @@ class Timer:
     def __exit__(self, *args):
         self.end = time.time()
         self.interval, self.unit = self.__getInterval()
-        if self.verbose: print(f"The query took {self.interval:.5f} {self.unit}.".encode('utf-8'))
+        if self.verbose: print(f"The query took {self.interval:.5f} {self.unit}.")
 
     def __getInterval(self) -> tuple:
         interval = self.end - self.start

@@ -72,7 +72,7 @@ class Population:
 class EightQueensRunner:
     """This is a controller class for the eight queens problem"""
 
-    def __init__(self, top_individuals: int, crossover: str, mutation_rate: float, board_size: int, max_iter=5000, verbose=False):
+    def __init__(self, top_individuals: int, crossover: str, mutation_rate: float, board_size: int, max_iter=5000, verbose=0):
         """
         :param top_individuals: the amount of top individuals
         :param crossover: the way in which genes from the best individual crossover
@@ -133,12 +133,12 @@ class EightQueensRunner:
 
             # check for the success
             if population.has_the_goal():
-                # print(f"Goal state achieved in {generation} iterations. {population.the_goal()}")
+                if self.verbose >= 1: print(f"Goal state achieved in {generation} iterations. {population.the_goal()}")
                 break
 
             # get best individuals
             top_k = [population.population[i] for i in population.top_k()]
-            if self.verbose: print(f"Generation {generation} Top {self.k}:", *(str(top).rjust(30) for top in top_k), sep='\n')
+            if self.verbose == 2: print(f"Generation {generation} Top {self.k}:", *(str(top).rjust(30) for top in top_k), sep='\n')
 
             # select genes
             genes_x = []
@@ -146,7 +146,7 @@ class EightQueensRunner:
             for top in top_k:
                 genes_x.append(top.state[:self.selection_split])
                 genes_y.append(top.state[self.selection_split:])
-            if self.verbose: print(f"Gene splits:", *(str(gene).rjust(23) for gene in np.concatenate((genes_x, genes_y), 1)), sep='\n')
+            if self.verbose == 2: print(f"Gene splits:", *(str(gene).rjust(23) for gene in np.concatenate((genes_x, genes_y), 1)), sep='\n')
 
             # crossover
             next_generation = getattr(self, self.c)(genes_x, genes_y)
@@ -158,11 +158,10 @@ class EightQueensRunner:
                     if random.uniform(0, 1) >= self.m: continue
                     next_generation[i][j] = random.choice([r for r in range(0, self.n) if r != gene])
 
-            if self.verbose: print(f"Next generation:", *(str(gene).rjust(23) for gene in next_generation), sep='\n', end='\n\n')
+            if self.verbose == 2: print(f"Next generation:", *(str(gene).rjust(23) for gene in next_generation), sep='\n', end='\n\n')
             generation += 1
         else:
-            # print('The algorithm failed to reach the goal.')
-            pass
+            if self.verbose >= 1: print('The algorithm failed to reach the goal.')
 
 
 if __name__ == '__main__':
@@ -171,5 +170,5 @@ if __name__ == '__main__':
                           crossover='permutations',
                           mutation_rate=1 / 8,
                           board_size=8,
-                          verbose=True).run()
+                          verbose=2).run()
     print(t.getAbsoluteInterval())
