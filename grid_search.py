@@ -30,21 +30,21 @@ def process(params: tuple) -> dict:
             'time': avg_time,
             'top_individuals': K,
             'crossover': C,
-            'mutation_rate': M,
+            'mutation_rate': round(M, 6),
             'board_size': N}
 
 
 if __name__ == '__main__':
-    n_range = [12]
-    k_range = range(3, 9)
+    n_range = range(4, 13)
+    k_range = range(3, 8)
     m_range = np.linspace(0.05, 0.22, 18)
-    c_range = ['product', 'permutations', 'combinations_with_rep']
+    c_range = ['product', 'combinations_with_rep', 'permutations']
     data = []
 
-    with Pool(5) as pool:
-        for result in pool.imap_unordered(process, itertools.product(n_range, k_range, m_range, c_range), chunksize=3):
+    with Pool(6) as pool:
+        for result in pool.imap_unordered(process, itertools.product(n_range, k_range, m_range, c_range), chunksize=2):
             print(result)
             data.append(result)
 
     data = pd.DataFrame(data)
-    data.to_csv('gs_FullSearch_N12.csv', index=False)
+    data.to_csv('gs_FullSearch.csv', index=False)
